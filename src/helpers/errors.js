@@ -1,6 +1,10 @@
-const notFoundError = new Error("Not found");
-notFoundError.status = 404;
+const customError = ({ status, message }) => {
+  const error = new Error(message);
+  error.status = status;
+
+  return error;
+};
 
 module.exports = {
-  notFoundError,
+  customError,
 };

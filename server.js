@@ -1,14 +1,10 @@
 const app = require("./src/app");
 const mongoose = require("mongoose");
-
-require("dotenv").config();
-
-const PORT = process.env.PORT || 3000;
-const uriDb = process.env.DB_HOST;
+const { PORT, DB_HOST } = require("./src/config");
 
 (async () => {
   try {
-    await mongoose.connect(uriDb);
+    await mongoose.connect(DB_HOST);
     console.log("Database connection successful");
 
     app.listen(PORT, () => {
