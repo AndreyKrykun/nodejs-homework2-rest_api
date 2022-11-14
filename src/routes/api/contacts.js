@@ -16,28 +16,33 @@ const {
   schemaPatchContact,
 } = require("../../schemas/contactsSchemas");
 
+const auth = require("../../middlewares/authMiddleware");
+
 const router = express.Router();
 
-router.get("/", asyncWrapper(getContactsController));
+router.get("/", auth, asyncWrapper(getContactsController));
 
-router.get("/:contactId", asyncWrapper(getContactByIdController));
+router.get("/:contactId", auth, asyncWrapper(getContactByIdController));
 
 router.post(
   "/",
+  auth,
   validationBody(schemaPostContact),
   asyncWrapper(addContactController)
 );
 
-router.delete("/:contactId", asyncWrapper(deleteContactController));
+router.delete("/:contactId", auth, asyncWrapper(deleteContactController));
 
 router.put(
   "/:contactId",
+  auth,
   validationBody(schemaPutContact),
   asyncWrapper(updateContactController)
 );
 
 router.patch(
   "/:contactId/favorite",
+  auth,
   validationBody(schemaPatchContact),
   asyncWrapper(changeFavoriteController)
 );
