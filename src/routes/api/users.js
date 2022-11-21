@@ -4,7 +4,6 @@ const {
   loginUserController,
   logoutUserController,
   getCurrentUserController,
-  changeUserSubscriptionController,
 } = require("../../controllers/authController");
 const { asyncWrapper } = require("../../helpers/apiHelpers");
 const { validationBody } = require("../../middlewares/validationMiddleware");
@@ -13,6 +12,10 @@ const {
   schemaPatchUser,
 } = require("../../schemas/usersSchemas");
 const auth = require("../../middlewares/authMiddleware");
+const { upload } = require("../../middlewares/uploadMiddleware");
+const {
+  changeUserAvatarController,
+} = require("../../controllers/userController");
 
 const router = express.Router();
 
@@ -37,6 +40,12 @@ router.patch(
   auth,
   validationBody(schemaPatchUser),
   asyncWrapper(changeUserSubscriptionController)
+);
+
+router.patch(
+  "/avatars",
+  auth / upload.single("avatar"),
+  asyncWrapper(changeUserAvatarController)
 );
 
 module.exports = router;
