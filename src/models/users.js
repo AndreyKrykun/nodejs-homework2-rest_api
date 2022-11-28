@@ -3,14 +3,19 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { SECRET } = require("../config");
 const gravatar = require("gravatar");
+const { v4: uuid } = require("uuid");
+const { customError } = require("../helpers/errors");
+const { sendVerificationMail } = require("../helpers/mailService");
 
 const registerUser = async ({ email, password }) => {
   const hashPassword = await bcrypt.hash(password, 10);
+  const verificationToken = uuid();
 
   const createdUser = await User.create({
     email,
     password: hashPassword,
     avatarURL: gravatar.url(email, { protocol: "https" }),
+    verificationToken,
   }).catch(() => {
     return null;
   });
@@ -24,6 +29,8 @@ const registerUser = async ({ email, password }) => {
     },
   };
 
+  await sendVerificationMail(createdUser.email, verificationToken);
+
   return user;
 };
 
@@ -35,6 +42,9 @@ const loginUser = async ({ email, password }) => {
   const isPasswordValid = await bcrypt.compare(password, currentUser.password);
 
   if (!isPasswordValid) return null;
+
+  if (!currentUser.verify)
+    throw customError({ status: 403, message: "Verify your email first." });
 
   const payload = {
     id: currentUser._id,
@@ -74,9 +84,34 @@ const changeUserAvatar = async (avatar, _id) => {
   return changedUser.avatarURL;
 };
 
+const verifyUser = async (verificationToken) => {
+  const user = await User.findOneAndUpdate(
+    { verificationToken },
+    {
+      verificationToken: null,
+      verify: true,
+    },
+    { new: true }
+  );
+
+  return user;
+};
+
+const checkVerification = async ({ email }) => {
+  const user = await User.findOne({ email, verify: false });
+
+  if (!user) return null;
+
+  await sendVerificationMail(user.email, user.verificationToken);
+
+  return user;
+};
+
 module.exports = {
   registerUser,
   loginUser,
   changeUserSubscription,
   changeUserAvatar,
+  verifyUser,
+  checkVerification,
 };

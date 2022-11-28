@@ -10,11 +10,15 @@ const { validationBody } = require("../../middlewares/validationMiddleware");
 const {
   schemaPostUser,
   schemaPatchUser,
+  schemaVerifyUser,
 } = require("../../schemas/usersSchemas");
 const auth = require("../../middlewares/authMiddleware");
 const { upload } = require("../../middlewares/uploadMiddleware");
 const {
   changeUserAvatarController,
+  changeUserSubscriptionController,
+  verificationUserController,
+  resendVerificationUserController,
 } = require("../../controllers/userController");
 
 const router = express.Router();
@@ -46,6 +50,17 @@ router.patch(
   "/avatars",
   auth / upload.single("avatar"),
   asyncWrapper(changeUserAvatarController)
+);
+
+router.get(
+  "/verify/:verificationToken",
+  asyncWrapper(verificationUserController)
+);
+
+router.post(
+  "/verify",
+  validationBody(schemaVerifyUser),
+  asyncWrapper(resendVerificationUserController)
 );
 
 module.exports = router;

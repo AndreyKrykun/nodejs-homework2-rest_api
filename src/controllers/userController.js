@@ -2,7 +2,12 @@ const fs = require("fs").promises;
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { customError } = require("../helpers/errors");
-const { changeUserSubscription, changeUserAvatar } = require("../models/users");
+const {
+  changeUserSubscription,
+  changeUserAvatar,
+  verifyUser,
+  checkVerification,
+} = require("../models/users");
 const Jimp = require("jimp");
 const storeImage = path.join(process.cwd(), "public/avatars");
 
@@ -42,7 +47,33 @@ const changeUserAvatarController = async (req, res, next) => {
   });
 };
 
+const verificationUserController = async (req, res) => {
+  const { verificationToken } = req.params;
+
+  const verifiedUser = await verifyUser(verificationToken);
+
+  if (!verifiedUser)
+    throw customError({ status: 404, message: "User not found" });
+
+  res.status(200).json({ message: "Verification successful" });
+};
+
+const resendVerificationUserController = async (req, res) => {
+  const user = await checkVerification(req.body);
+
+  if (!user)
+    return res
+      .status(400)
+      .json({ message: "Verification has already been passed" });
+
+  res.status(200).json({
+    message: "Verification email sent",
+  });
+};
+
 module.exports = {
   changeUserSubscriptionController,
   changeUserAvatarController,
+  verificationUserController,
+  resendVerificationUserController,
 };
